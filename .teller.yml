@@ -1,0 +1,7 @@
+project: sample-service
+providers:
+  dotenv:
+    env:
+      path: .env.example
+  exec:
+    path: printf 'DYNAMIC_GIT_HASH=a1b2c3d4e5\nREGION=eu-central-1\n'

@@ -1,0 +1,97 @@
+name: CI & Build
+
+on:
+  push:
+    branches: [ master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.13.0
+
+      - name: Run unit tests
+        run: zig build test
+
+  build:
+    name: Build & Publish Multi-Target Binaries
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.13.0
+
+      - name: Build Linux (x86_64)
+        run: zig build linux -Doptimize=ReleaseSmall
+
+      - name: Build Windows (x86_64)
+        run: zig build windows -Doptimize=ReleaseSmall
+
+      - name: Package Release Assets
+        run: |
+          sudo apt-get update && sudo apt-get install -y zip
+          cd zig-out/bin
+          tar -czf zeller-linux-x86_64.tar.gz zeller-linux-x86_64
+          zip zeller-windows-x86_64.zip zeller-windows-x86_64.exe
+          sha256sum zeller-linux-x86_64 zeller-windows-x86_64.exe zeller-linux-x86_64.tar.gz zeller-windows-x86_64.zip > SHA256SUMS.txt
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zeller-linux-x86_64
+          path: zig-out/bin/zeller-linux-x86_64
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zeller-windows-x86_64
+          path: zig-out/bin/zeller-windows-x86_64.exe
+
+      - name: Publish Tagged Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            zig-out/bin/zeller-linux-x86_64
+            zig-out/bin/zeller-windows-x86_64.exe
+            zig-out/bin/zeller-linux-x86_64.tar.gz
+            zig-out/bin/zeller-windows-x86_64.zip
+            zig-out/bin/SHA256SUMS.txt
+          generate_release_notes: true
+
+      - name: Publish Rolling Latest Pre-release (Master)
+        if: github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Zeller Latest (Pre-release)"
+          prerelease: true
+          files: |
+            zig-out/bin/zeller-linux-x86_64
+            zig-out/bin/zeller-windows-x86_64.exe
+            zig-out/bin/zeller-linux-x86_64.tar.gz
+            zig-out/bin/zeller-windows-x86_64.zip
+            zig-out/bin/SHA256SUMS.txt

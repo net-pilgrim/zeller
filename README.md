@@ -9,7 +9,7 @@
 ## Features
 
 - **⚡ Sub-millisecond execution**: Injects secrets and launches child processes with virtually 0ms overhead.
-- **🪶 Tiny binary**: Only ~840 KB (ReleaseSmall) compared to Go's 35-50 MB.
+- **🪶 Tiny binary**: Only ~840 KB (ReleaseSmall) compared to Rust Teller's ~15-30 MB.
 - **🧠 Extremely light memory footprint**: ~2.5 MB peak memory usage.
 - **🔌 Multi-Provider Support**:
   - `dotenv`: Fast native parser for `.env` and environment files (quotes, multiline, escapes).

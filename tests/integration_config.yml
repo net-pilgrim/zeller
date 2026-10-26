@@ -1,0 +1,8 @@
+project: ci-integration-test
+providers:
+  aws_ssm:
+    env:
+      path: /ci/app/
+  hashicorp_vault:
+    env:
+      path: secret/data/ci

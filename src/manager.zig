@@ -6,6 +6,7 @@ const DotenvProvider = @import("providers/dotenv.zig").DotenvProvider;
 const ExecProvider = @import("providers/exec.zig").ExecProvider;
 const VaultProvider = @import("providers/vault.zig").VaultProvider;
 const DopplerProvider = @import("providers/doppler.zig").DopplerProvider;
+const AwsSsmProvider = @import("providers/aws_ssm.zig").AwsSsmProvider;
 
 pub const Manager = struct {
     allocator: std.mem.Allocator,
@@ -77,6 +78,27 @@ pub const Manager = struct {
             const doppler_token = doppler_token_owned orelse "";
 
             var p = DopplerProvider.init(self.allocator, doppler_token);
+            var iface = p.provider();
+            return iface.fetch(self.allocator, entry.path);
+        } else if (std.mem.eql(u8, entry.kind, "aws_ssm") or std.mem.eql(u8, entry.kind, "ssm")) {
+            const region_owned = std.process.getEnvVarOwned(self.allocator, "AWS_REGION") catch
+                (std.process.getEnvVarOwned(self.allocator, "AWS_DEFAULT_REGION") catch null);
+            defer if (region_owned) |r| self.allocator.free(r);
+            const region = region_owned orelse "us-east-1";
+
+            const ak_owned = std.process.getEnvVarOwned(self.allocator, "AWS_ACCESS_KEY_ID") catch null;
+            defer if (ak_owned) |ak| self.allocator.free(ak);
+            const access_key = ak_owned orelse "test";
+
+            const sk_owned = std.process.getEnvVarOwned(self.allocator, "AWS_SECRET_ACCESS_KEY") catch null;
+            defer if (sk_owned) |sk| self.allocator.free(sk);
+            const secret_key = sk_owned orelse "test";
+
+            const ep_owned = std.process.getEnvVarOwned(self.allocator, "AWS_ENDPOINT_URL") catch
+                (std.process.getEnvVarOwned(self.allocator, "AWS_SSM_ENDPOINT_URL") catch null);
+            defer if (ep_owned) |ep| self.allocator.free(ep);
+
+            var p = AwsSsmProvider.init(self.allocator, region, access_key, secret_key, ep_owned);
             var iface = p.provider();
             return iface.fetch(self.allocator, entry.path);
         } else {

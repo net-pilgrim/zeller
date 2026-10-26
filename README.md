@@ -13,6 +13,7 @@
 - **🧠 Extremely light memory footprint**: ~2.5 MB peak memory usage.
 - **🔌 Multi-Provider Support**:
   - `dotenv`: Fast native parser for `.env` and environment files (quotes, multiline, escapes).
+  - `aws_ssm`: Native AWS Systems Manager (SSM) Parameter Store client with full AWS SigV4 request signing. Supports AWS endpoints, Floci, and LocalStack.
   - `hashicorp_vault`: Native HTTP REST client for HashiCorp Vault (KV v1 and KV v2).
   - `doppler`: Native HTTP REST client for Doppler Secrets API.
   - `exec`: Dynamic CLI bridge allowing any CLI tool (`op`, `aws`, `gcloud`, scripts) to supply secrets.
@@ -76,6 +77,10 @@ providers:
     env:
       path: .env.production
 
+  aws_ssm:
+    env:
+      path: /my-service/production/
+
   exec:
     path: printf 'DYNAMIC_GIT_SHA=1a2b3c4d\n'
 
@@ -95,6 +100,17 @@ providers:
     { "kind": "doppler", "path": "project=api&config=prd" }
   ]
 }
+```
+
+### Testing Locally with Floci (AWS Mock)
+You can test AWS SSM locally using the [Floci](https://github.com/floci-io/floci) emulator:
+
+```bash
+# 1. Start Floci in Docker
+docker run --rm -p 4566:4566 floci/floci:latest
+
+# 2. Point Zeller to the local emulator endpoint
+AWS_ENDPOINT_URL=http://localhost:4566 zeller show --reveal
 ```
 
 ---

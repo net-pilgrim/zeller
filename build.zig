@@ -88,4 +88,32 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_exe_unit_tests.step);
+
+    // Convenience build step for Windows x86_64
+    const win_target = b.resolveTargetQuery(.{
+        .cpu_arch = .x86_64,
+        .os_tag = .windows,
+    });
+    const win_exe = b.addExecutable(.{
+        .name = "zeller-windows-x86_64",
+        .root_source_file = b.path("src/main.zig"),
+        .target = win_target,
+        .optimize = optimize,
+    });
+    const win_step = b.step("windows", "Build Windows x86_64 binary");
+    win_step.dependOn(&b.addInstallArtifact(win_exe, .{}).step);
+
+    // Convenience build step for Linux x86_64
+    const linux_target = b.resolveTargetQuery(.{
+        .cpu_arch = .x86_64,
+        .os_tag = .linux,
+    });
+    const linux_exe = b.addExecutable(.{
+        .name = "zeller-linux-x86_64",
+        .root_source_file = b.path("src/main.zig"),
+        .target = linux_target,
+        .optimize = optimize,
+    });
+    const linux_step = b.step("linux", "Build Linux x86_64 binary");
+    linux_step.dependOn(&b.addInstallArtifact(linux_exe, .{}).step);
 }

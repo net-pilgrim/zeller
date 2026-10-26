@@ -25,7 +25,7 @@ pub fn main() !void {
             },
         }
         printUsage();
-        std.posix.exit(1);
+        std.process.exit(1);
     };
 
     switch (command) {
@@ -39,36 +39,36 @@ pub fn main() !void {
         .run => |r| {
             var cfg = config_mod.Config.findAndLoad(allocator, r.config_path) catch |err| {
                 std.debug.print("Error loading config: {s}\n", .{@errorName(err)});
-                std.posix.exit(1);
+                std.process.exit(1);
             };
             defer cfg.deinit();
 
             const mgr = manager_mod.Manager.init(allocator);
             var secrets = mgr.fetchAllSecrets(&cfg) catch |err| {
                 std.debug.print("Error resolving secrets: {s}\n", .{@errorName(err)});
-                std.posix.exit(1);
+                std.process.exit(1);
             };
             defer types.freeSecretMap(allocator, &secrets);
 
             const runner = runner_mod.Runner.init(allocator);
             const exit_code = runner.run(r.cmd_argv, &secrets) catch |err| {
                 std.debug.print("Error executing command: {s}\n", .{@errorName(err)});
-                std.posix.exit(1);
+                std.process.exit(1);
             };
 
-            std.posix.exit(exit_code);
+            std.process.exit(exit_code);
         },
         .env => |e| {
             var cfg = config_mod.Config.findAndLoad(allocator, e.config_path) catch |err| {
                 std.debug.print("Error loading config: {s}\n", .{@errorName(err)});
-                std.posix.exit(1);
+                std.process.exit(1);
             };
             defer cfg.deinit();
 
             const mgr = manager_mod.Manager.init(allocator);
             var secrets = mgr.fetchAllSecrets(&cfg) catch |err| {
                 std.debug.print("Error resolving secrets: {s}\n", .{@errorName(err)});
-                std.posix.exit(1);
+                std.process.exit(1);
             };
             defer types.freeSecretMap(allocator, &secrets);
 
@@ -94,14 +94,14 @@ pub fn main() !void {
         .show => |s| {
             var cfg = config_mod.Config.findAndLoad(allocator, s.config_path) catch |err| {
                 std.debug.print("Error loading config: {s}\n", .{@errorName(err)});
-                std.posix.exit(1);
+                std.process.exit(1);
             };
             defer cfg.deinit();
 
             const mgr = manager_mod.Manager.init(allocator);
             var secrets = mgr.fetchAllSecrets(&cfg) catch |err| {
                 std.debug.print("Error resolving secrets: {s}\n", .{@errorName(err)});
-                std.posix.exit(1);
+                std.process.exit(1);
             };
             defer types.freeSecretMap(allocator, &secrets);
 

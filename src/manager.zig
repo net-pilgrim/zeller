@@ -60,13 +60,22 @@ pub const Manager = struct {
             var iface = p.provider();
             return iface.fetch(self.allocator, entry.path);
         } else if (std.mem.eql(u8, entry.kind, "vault") or std.mem.eql(u8, entry.kind, "hashicorp_vault")) {
-            const vault_addr = std.posix.getenv("VAULT_ADDR") orelse "http://127.0.0.1:8200";
-            const vault_token = std.posix.getenv("VAULT_TOKEN") orelse "";
+            const vault_addr_owned = std.process.getEnvVarOwned(self.allocator, "VAULT_ADDR") catch null;
+            defer if (vault_addr_owned) |v| self.allocator.free(v);
+            const vault_addr = vault_addr_owned orelse "http://127.0.0.1:8200";
+
+            const vault_token_owned = std.process.getEnvVarOwned(self.allocator, "VAULT_TOKEN") catch null;
+            defer if (vault_token_owned) |v| self.allocator.free(v);
+            const vault_token = vault_token_owned orelse "";
+
             var p = VaultProvider.init(self.allocator, vault_addr, vault_token);
             var iface = p.provider();
             return iface.fetch(self.allocator, entry.path);
         } else if (std.mem.eql(u8, entry.kind, "doppler")) {
-            const doppler_token = std.posix.getenv("DOPPLER_TOKEN") orelse "";
+            const doppler_token_owned = std.process.getEnvVarOwned(self.allocator, "DOPPLER_TOKEN") catch null;
+            defer if (doppler_token_owned) |v| self.allocator.free(v);
+            const doppler_token = doppler_token_owned orelse "";
+
             var p = DopplerProvider.init(self.allocator, doppler_token);
             var iface = p.provider();
             return iface.fetch(self.allocator, entry.path);

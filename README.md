@@ -25,10 +25,16 @@
 Requires **Zig 0.13.0+**:
 
 ```bash
-# Build optimized binary
+# Build for host
 zig build -Doptimize=ReleaseSmall
 
-# Binary will be placed in zig-out/bin/zeller
+# Cross-compile for Linux (x86_64)
+zig build linux -Doptimize=ReleaseSmall
+
+# Cross-compile for Windows (x86_64)
+zig build windows -Doptimize=ReleaseSmall
+
+# Binaries will be placed in zig-out/bin/
 ./zig-out/bin/zeller --version
 ```
 

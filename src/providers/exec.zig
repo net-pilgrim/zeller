@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const types = @import("../types.zig");
 const provider_mod = @import("../provider.zig");
 const SecretMap = types.SecretMap;
@@ -35,9 +36,12 @@ pub const ExecProvider = struct {
         var map = SecretMap.init(allocator);
         errdefer types.freeSecretMap(allocator, &map);
 
-        // Run the command via `sh -c "<command_str>"`
-        const argv = [_][]const u8{ "sh", "-c", command_str };
-        var child = std.process.Child.init(&argv, allocator);
+        // Run the command via `cmd.exe /c` on Windows, `sh -c` on POSIX
+        const argv: []const []const u8 = if (builtin.os.tag == .windows)
+            &[_][]const u8{ "cmd.exe", "/c", command_str }
+        else
+            &[_][]const u8{ "sh", "-c", command_str };
+        var child = std.process.Child.init(argv, allocator);
         child.stdout_behavior = .Pipe;
         child.stderr_behavior = .Pipe;
 

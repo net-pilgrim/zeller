@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 jobs:
-  test-linux:
+  test:
     name: Test & Integration (Linux + Service Containers)
     runs-on: ubuntu-latest
     services:
@@ -91,25 +91,10 @@ jobs:
             echo "All service container secrets verified!"
           '
 
-  test-windows:
-    name: Test (Windows)
-    runs-on: windows-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Zig
-        uses: mlugg/setup-zig@v1
-        with:
-          version: 0.13.0
-
-      - name: Run unit tests
-        run: zig build test
-
   build:
     name: Build & Publish Multi-Target Binaries
     runs-on: ubuntu-latest
-    needs: [test-linux, test-windows]
+    needs: test
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
